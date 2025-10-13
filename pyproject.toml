@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "financial-manager-api"
+version = "0.1.0"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = "^0.114.0"
+uvicorn = "^0.30.0"
+pydantic-settings = "^2.4.0"
+sqlalchemy = "^2.0"
+alembic = "^1.13.2"
+psycopg2 = "^2.9.10"   # Postgres
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.2"
+httpx = "^0.27.2"
