@@ -52,6 +52,11 @@ class TransactionIn(BaseModel):
     category: str
     description: Optional[str] = None
 
+
+class AgentTransactionIn(BaseModel):
+    json: TransactionIn
+
+
 app = FastAPI()
 
 @app.get("/")
@@ -79,6 +84,26 @@ def create_transaction(payload: TransactionIn, db: Session = Depends(get_db)):
     db.refresh(transaction)
     
     return transaction
+
+
+@app.post("/v1/transactions/agent", response_model=TransactionOut, status_code=201)
+def create_transaction(payload: AgentTransactionIn, db: Session = Depends(get_db)):
+    print("Agent request realizada")
+    transaction = Transaction(
+        date=payload.json.date,
+        amount=payload.json.amount,
+        currency= payload.json.currency,
+        type=payload.json.type,
+        description=payload.json.description,
+        category=payload.json.category
+    )
+    
+    db.add(transaction)
+    db.commit()
+    db.refresh(transaction)
+    
+    return transaction
+    
 
 # Simple runner without uvicorn
 if __name__ == "__main__":
