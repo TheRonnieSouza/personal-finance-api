@@ -23,6 +23,8 @@ def get_db():
 class Transaction(Base):
     __tablename__ = "app_transactions"
     id = Column(Integer, primary_key=True, autoincrement=True)
+    phone_number = Column(String(20))
+    name = Column(String(30))
     date = Column(Date, index=True)
     amount = Column(Numeric(12, 2))
     currency = Column(String(3), default="BRL")
@@ -36,6 +38,8 @@ Base.metadata.create_all(engine)
 # ---- SCHEMAS ----
 class TransactionOut(BaseModel):
     id: int
+    phone_number: int
+    name: str
     date: date
     amount: float
     currency: str
@@ -45,6 +49,8 @@ class TransactionOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     
 class TransactionIn(BaseModel):
+    phone_number : int
+    name: str
     date: date
     amount: float = Field(gt=0)
     currency: str = Field(default="BRL")  # Fixed to 3 characters
@@ -54,7 +60,7 @@ class TransactionIn(BaseModel):
 
 
 class AgentTransactionIn(BaseModel):
-    json: TransactionIn
+    transaction: TransactionIn
 
 
 app = FastAPI()
@@ -72,6 +78,8 @@ def get_transactions(db: Session = Depends(get_db)):
 def create_transaction(payload: TransactionIn, db: Session = Depends(get_db)):
     print("request realizada")
     transaction = Transaction(
+        phone_number=payload.phone_number,
+        name=payload.name,
         date=payload.date,
         amount=payload.amount,
         currency=payload.currency,
@@ -87,15 +95,17 @@ def create_transaction(payload: TransactionIn, db: Session = Depends(get_db)):
 
 
 @app.post("/v1/transactions/agent", response_model=TransactionOut, status_code=201)
-def create_transaction(payload: AgentTransactionIn, db: Session = Depends(get_db)):
+def create_agent_transaction(payload: AgentTransactionIn, db: Session = Depends(get_db)):
     print("Agent request realizada")
-    transaction = Transaction(
-        date=payload.json.date,
-        amount=payload.json.amount,
-        currency= payload.json.currency,
-        type=payload.json.type,
-        description=payload.json.description,
-        category=payload.json.category
+    transaction = Transaction(        
+        name=payload.transaction.name,
+        phone_number=payload.transaction.phone_number,
+        date=payload.transaction.date,
+        amount=payload.transaction.amount,
+        currency= payload.transaction.currency,
+        type=payload.transaction.type,
+        description=payload.transaction.description,
+        category=payload.transaction.category
     )
     
     db.add(transaction)
