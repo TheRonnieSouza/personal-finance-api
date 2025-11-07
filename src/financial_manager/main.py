@@ -70,8 +70,11 @@ def root():
     return {"status": "ok"}
 
 @app.get("/v1/transactions")
-def get_transactions(db: Session = Depends(get_db)):
-    transactions = db.query(Transaction).all()
+def get_transactions(phone_number: Optional[str] = None, db: Session = Depends(get_db)):
+    if phone_number:
+        transactions = db.query(Transaction).filter(Transaction.phone_number ==  phone_number).all()
+    elif not phone_number:
+        transactions = db.query(Transaction).all()
     return {"transactions": transactions}
 
 @app.post("/v1/transactions", response_model=TransactionOut, status_code=201)
