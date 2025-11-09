@@ -77,6 +77,8 @@ def get_transactions(phone_number: Optional[str] = None, db: Session = Depends(g
         transactions = db.query(Transaction).all()
     return {"transactions": transactions}
 
+
+
 @app.post("/v1/transactions", response_model=TransactionOut, status_code=201)
 def create_transaction(payload: TransactionIn, db: Session = Depends(get_db)):
     print("request realizada")
