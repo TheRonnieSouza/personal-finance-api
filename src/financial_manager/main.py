@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 load_dotenv()
 
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, Path, HTTPException
 from pydantic import BaseModel, Field, ConfigDict
 from datetime import date
 from typing import Optional, Literal
@@ -28,7 +28,7 @@ class Transaction(Base):
     date = Column(Date, index=True)
     amount = Column(Numeric(12, 2))
     currency = Column(String(3), default="BRL")
-    type = Column(String(10))  # "debito" | "credito"
+    type = Column(String(10))  # "debito" | "credito" | "pix"
     description = Column(String(255), default=None)
     category = Column(String(50))  # Increased size for categories
 
@@ -54,7 +54,7 @@ class TransactionIn(BaseModel):
     date: date
     amount: float = Field(gt=0)
     currency: str = Field(default="BRL")  # Fixed to 3 characters
-    type: Literal["debito", "credito"]
+    type: Literal["debito", "credito", "pix"]
     category: str
     description: Optional[str] = None
 
@@ -62,6 +62,15 @@ class TransactionIn(BaseModel):
 class AgentTransactionIn(BaseModel):
     transaction: TransactionIn
 
+class UpdateCommand(BaseModel):
+    phone_number : int
+    name : str
+    date : date
+    amount : float = Field(gt=0)
+    currency: str = Field(default="BRL")
+    type: Literal["debito", "credito", "pix"]
+    category: str
+    description: Optional[str] = None
 
 app = FastAPI()
 
@@ -79,7 +88,7 @@ def get_transactions(phone_number: Optional[str] = None, db: Session = Depends(g
 
 
 
-@app.post("/v1/transactions", response_model=TransactionOut, status_code=201)
+@app.post("/v1/transaction", response_model=TransactionOut, status_code=201)
 def create_transaction(payload: TransactionIn, db: Session = Depends(get_db)):
     print("request realizada")
     transaction = Transaction(
@@ -99,7 +108,7 @@ def create_transaction(payload: TransactionIn, db: Session = Depends(get_db)):
     return transaction
 
 
-@app.post("/v1/transactions/agent", response_model=TransactionOut, status_code=201)
+@app.post("/v1/transaction/agent", response_model=TransactionOut, status_code=201)
 def create_agent_transaction(payload: AgentTransactionIn, db: Session = Depends(get_db)):
     print("Agent request realizada")
     transaction = Transaction(        
@@ -118,7 +127,45 @@ def create_agent_transaction(payload: AgentTransactionIn, db: Session = Depends(
     db.refresh(transaction)
     
     return transaction
+
+@app.put("/v1/transaction/{id}", response_model=TransactionOut, status_code=200)
+def update_transaction(payload: UpdateCommand, id: int = Path(description="Transaction ID", gt=0), db: Session = Depends(get_db)):
     
+    print(f"Update transaction called: id = {id}, updateCommand:{payload}")
+    
+    transaction = db.get(Transaction, id)
+   
+    if not transaction:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+   
+    transaction.phone_number = payload.phone_number
+    transaction.name = payload.name
+    transaction.date = payload.date
+    transaction.amount = payload.amount
+    transaction.currency = payload.currency
+    transaction.type = payload.type
+    transaction.description = payload.description
+    transaction.category = payload.category
+    
+    db.commit()
+    db.refresh(transaction)
+    
+    return transaction
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # Simple runner without uvicorn
 if __name__ == "__main__":
