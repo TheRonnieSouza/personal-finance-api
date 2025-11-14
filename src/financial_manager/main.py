@@ -7,7 +7,7 @@ from datetime import date
 from typing import Optional, Literal
 import os
 from sqlalchemy.orm import Session, declarative_base
-from sqlalchemy import create_engine, Numeric, String, Date, Column, Integer
+from sqlalchemy import create_engine, Numeric, String, Date, Column, Integer, select
 
 # ---- DB ---- #
 DB_URL = os.getenv("STRING_CONNECTION", "")
@@ -38,7 +38,7 @@ Base.metadata.create_all(engine)
 # ---- SCHEMAS ----
 class TransactionOut(BaseModel):
     id: int
-    phone_number: int
+    phone_number: str
     name: str
     date: date
     amount: float
@@ -49,7 +49,7 @@ class TransactionOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     
 class TransactionIn(BaseModel):
-    phone_number : int
+    phone_number : str
     name: str
     date: date
     amount: float = Field(gt=0)
@@ -63,7 +63,7 @@ class AgentTransactionIn(BaseModel):
     transaction: TransactionIn
 
 class UpdateCommand(BaseModel):
-    phone_number : int
+    phone_number : str
     name : str
     date : date
     amount : float = Field(gt=0)
@@ -78,15 +78,24 @@ app = FastAPI()
 def root():
     return {"status": "ok"}
 
-@app.get("/v1/transactions")
-def get_transactions(phone_number: Optional[str] = None, db: Session = Depends(get_db)):
+@app.get("/v1/transactions/{phone_number}")
+def get_transactions(phone_number: str = Path(description="phone_number"), db: Session = Depends(get_db)):
+    print(f"get: phone_number = {phone_number} ")
     if phone_number:
         transactions = db.query(Transaction).filter(Transaction.phone_number ==  phone_number).all()
     elif not phone_number:
         transactions = db.query(Transaction).all()
     return {"transactions": transactions}
 
-
+@app.get("/v1/transaction/{phone_number}/{id}")
+def get_transaction(phone_number: str = Path(description="phone_number") , id: int = Path(description="Transation id"), db: Session = Depends(get_db)):
+    print(f"get: phone_number = {phone_number} , id = {id} ")
+    query = select(Transaction).where(Transaction.id == id, Transaction.phone_number == phone_number)
+    
+    result = db.execute(query).scalars().first()
+    if not result:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    return result
 
 @app.post("/v1/transaction", response_model=TransactionOut, status_code=201)
 def create_transaction(payload: TransactionIn, db: Session = Depends(get_db)):
@@ -128,8 +137,9 @@ def create_agent_transaction(payload: AgentTransactionIn, db: Session = Depends(
     
     return transaction
 
+
 @app.put("/v1/transaction/{id}", response_model=TransactionOut, status_code=200)
-def update_transaction(payload: UpdateCommand, id: int = Path(description="Transaction ID", gt=0), db: Session = Depends(get_db)):
+def update_transaction(payload: UpdateCommand, id: int = Path(description="Transaction ID", gt=0),  db: Session = Depends(get_db)):
     
     print(f"Update transaction called: id = {id}, updateCommand:{payload}")
     
@@ -137,6 +147,9 @@ def update_transaction(payload: UpdateCommand, id: int = Path(description="Trans
    
     if not transaction:
         raise HTTPException(status_code=404, detail="Transaction not found")
+    if transaction.phone_number != payload.phone_number.strip():
+        print(f"Transation founded, but the phone number is wrong, transaction.phone_number = {transaction.phone_number}, payload.phone_number = {payload.phone_number}")
+        raise HTTPException(status_code=404, detail="Transation not found")
    
     transaction.phone_number = payload.phone_number
     transaction.name = payload.name
@@ -151,6 +164,7 @@ def update_transaction(payload: UpdateCommand, id: int = Path(description="Trans
     db.refresh(transaction)
     
     return transaction
+    
     
     
 
