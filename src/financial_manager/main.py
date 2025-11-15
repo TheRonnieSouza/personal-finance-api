@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 load_dotenv()
 
-from fastapi import FastAPI, Depends, Path, HTTPException
+from fastapi import FastAPI, Depends, Path, HTTPException, Query
 from pydantic import BaseModel, Field, ConfigDict
 from datetime import date
 from typing import Optional, Literal
@@ -165,8 +165,10 @@ def update_transaction(payload: UpdateCommand, id: int = Path(description="Trans
     
     return transaction
 
-@app.delete("/v1/transaction/{phone_number}/{id}", status_code=204)
-def delete_transaction(phone_number: int= Path(detail= "phone number", gh=0) ,id: int = Path(description= "Transaction id" ,gh=0), db: Session = Depends(get_db)):
+@app.delete("/v1/transaction/{id}", status_code=204)
+def delete_transaction(id: int = Path(description= "Transaction id" ,gh=0),
+                       phone_number: Optional[str] = Query(None, description="Phone number"),
+                       db: Session = Depends(get_db)):
     
     print(f"Delete transaction called: id = {id}, phone number = {phone_number} ")
     
@@ -174,7 +176,7 @@ def delete_transaction(phone_number: int= Path(detail= "phone number", gh=0) ,id
     
     if not transaction:
         raise HTTPException(status_code=404, detail="Transaction not found.")
-    elif str(transaction.phone_number).strip() != str(phone_number).strip():
+    elif str(transaction.phone_number).strip() != phone_number.strip():
         print(f"Transation founded, but the phone number is wrong, transaction.phone_number = {transaction.phone_number}, payload.phone_number = {phone_number}")
         raise HTTPException(status_code=404, detail="Transaction not found.")
     
