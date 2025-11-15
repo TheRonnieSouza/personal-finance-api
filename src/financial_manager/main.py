@@ -147,7 +147,7 @@ def update_transaction(payload: UpdateCommand, id: int = Path(description="Trans
    
     if not transaction:
         raise HTTPException(status_code=404, detail="Transaction not found")
-    if transaction.phone_number != payload.phone_number.strip():
+    if str(transaction.phone_number).strip() != str(payload.phone_number).strip():
         print(f"Transation founded, but the phone number is wrong, transaction.phone_number = {transaction.phone_number}, payload.phone_number = {payload.phone_number}")
         raise HTTPException(status_code=404, detail="Transation not found")
    
@@ -164,8 +164,23 @@ def update_transaction(payload: UpdateCommand, id: int = Path(description="Trans
     db.refresh(transaction)
     
     return transaction
+
+@app.delete("/v1/transaction/{phone_number}/{id}", status_code=204)
+def delete_transaction(phone_number: int= Path(detail= "phone number", gh=0) ,id: int = Path(description= "Transaction id" ,gh=0), db: Session = Depends(get_db)):
     
+    print(f"Delete transaction called: id = {id}, phone number = {phone_number} ")
     
+    transaction = db.get(Transaction, id)
+    
+    if not transaction:
+        raise HTTPException(status_code=404, detail="Transaction not found.")
+    elif str(transaction.phone_number).strip() != str(phone_number).strip():
+        print(f"Transation founded, but the phone number is wrong, transaction.phone_number = {transaction.phone_number}, payload.phone_number = {phone_number}")
+        raise HTTPException(status_code=404, detail="Transaction not found.")
+    
+    db.delete(transaction)
+    db.commit()
+    return 
     
 
 
