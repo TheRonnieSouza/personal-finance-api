@@ -87,8 +87,10 @@ def get_transactions(phone_number: str = Path(description="phone_number"), db: S
         transactions = db.query(Transaction).all()
     return {"transactions": transactions}
 
-@app.get("/v1/transaction/{phone_number}/{id}")
-def get_transaction(phone_number: str = Path(description="phone_number") , id: int = Path(description="Transation id"), db: Session = Depends(get_db)):
+@app.get("/v1/transaction/{id}")
+def get_transaction(id: int = Path(description="Transation id"),
+                    phone_number: str = Query(None, details="phone number"),                    
+                    db: Session = Depends(get_db)):
     print(f"get: phone_number = {phone_number} , id = {id} ")
     query = select(Transaction).where(Transaction.id == id, Transaction.phone_number == phone_number)
     
