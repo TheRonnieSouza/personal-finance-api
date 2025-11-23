@@ -28,7 +28,7 @@ def create_transaction(payload: CreateTransactionCommand, repository: ITransacti
     except ValueError as e:
         logger.error(f"Validation error: {str(e)}")
         raise HTTPException(
-            status_code=status.HTTP_400_NOT_FOUND,
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
     except Exception as e:
