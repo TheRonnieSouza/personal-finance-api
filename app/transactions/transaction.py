@@ -23,4 +23,14 @@ class Transaction():
         self.description = description
         self.category = category
         
+    def __str__(self):
+        return (f"Transaction(id={getattr(self, 'id', None)},"
+                f"name='{self.name}', "
+                f"phone_number='{self.phone_number}',"
+                f"amount={self.amount},"
+                f"currency='{self.currency}',"
+                f"type='{self.type}', "
+                f"category='{self.category}')")
     
+    def __repr__(self):
+        return self.__str__()
