@@ -10,6 +10,14 @@ from sqlalchemy.orm import Session, declarative_base
 from sqlalchemy import create_engine, Numeric, String, Date, Column, Integer, select
 from app.api.routes.transaction_api import router
 
+import logging 
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+
+
 
 # ---- DB ---- #
 DB_URL = os.getenv("STRING_CONNECTION", "")
