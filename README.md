@@ -15,16 +15,14 @@
 - ✅ **FastAPI Framework** - Auto-generated OpenAPI documentation
 - ✅ **Docker Support** - Containerized deployment ready
 - ✅ **Environment Configuration** - Secure configuration with python-dotenv
-- ✅ **Production Ready** - Optimized for cloud deployment
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
 - Python 3.12+
-- Poetry (dependency management)
 - PostgreSQL database
-- Docker (optional)
+- Docker 
 
 ### 🛠️ Local Development Setup
 
@@ -54,7 +52,6 @@
 5. **Access the API**
    - API: http://localhost:8000
    - Documentation: http://localhost:8000/docs
-   - Redoc: http://localhost:8000/redoc
 
 ### 🐳 Docker Deployment
 
@@ -128,33 +125,6 @@ CREATE TABLE app_transactions (
     category VARCHAR(50) NOT NULL
 );
 ```
-
-## 🛡️ Security Features
-
-- ✅ Non-root user in Docker container
-- ✅ Environment-based configuration
-- ✅ SQL injection protection via SQLAlchemy ORM
-- ✅ Input validation with Pydantic models
-
-## 🚀 Deployment
-
-### Cloud Deployment
-
-The API is ready for deployment on:
-- **Railway**
-- **Heroku**
-- **AWS ECS**
-- **Google Cloud Run**
-- **Azure Container Instances**
-
-### Production Configuration
-
-For production deployment, ensure:
-1. Use a production PostgreSQL database
-2. Set proper environment variables
-3. Configure SSL/TLS for database connections
-4. Set up monitoring and logging
-
 ## 📚 Dependencies
 
 - **FastAPI** - Modern web framework for APIs
@@ -163,17 +133,6 @@ For production deployment, ensure:
 - **python-dotenv** - Environment variable loader
 - **Uvicorn** - ASGI server for FastAPI
 
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 👨‍💻 Author
 
