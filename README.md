@@ -22,6 +22,7 @@
 
 - Python 3.12+
 - PostgreSQL database
+- Poetry
 - Docker 
 
 ### 🛠️ Local Development Setup
