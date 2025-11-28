@@ -22,6 +22,7 @@ class TransactionRepository(ITransactionRepository):
     def update(self, transaction:Transaction) -> Transaction:
         try:
             
+            #Todo this get cannot stay here
            model = self._session.get(TransactionModel, transaction.id)
            
            if not model:
@@ -57,6 +58,32 @@ class TransactionRepository(ITransactionRepository):
             raise e         
               
         return self.to_entity(model)
+    
+    def delete(self, transaction: Transaction) -> None:
+        """Deleta uma transação do banco de dados"""
+        try:
+            logger.info(f"Deleting transaction with id: {transaction.id}")
+            
+            # Busca o modelo existente no banco
+            model = self._session.get(TransactionModel, transaction.id)
+            
+            if not model:
+                logger.error(f"Transaction with id {transaction.id} not found for deletion")
+                raise ValueError(f"Transaction with id {transaction.id} not found")
+            
+            # Deleta o modelo
+            self._session.delete(model)
+            self._session.commit()
+            
+            logger.info(f"Transaction {transaction.id} deleted successfully")
+            
+        except ValueError:
+            raise
+        except Exception as e:
+            logger.exception(f"Error deleting transaction {transaction.id}: {str(e)}")
+            self._session.rollback()
+            raise e
+    
     
     def to_model(self, transaction: Transaction) -> TransactionModel:
         

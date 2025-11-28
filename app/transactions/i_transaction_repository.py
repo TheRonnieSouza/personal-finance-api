@@ -13,3 +13,7 @@ class ITransactionRepository(ABC):
     @abstractmethod
     def get_by_id(self, id:int) -> Transaction:
         pass
+    
+    @abstractmethod
+    def delete(self, transaction: Transaction):
+        pass

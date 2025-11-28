@@ -7,6 +7,10 @@ from app.transactions.update.update_command import UpdateTransactionCommand
 from app.transactions.update.update_command_handler import UpdateTransactionCommandHandler
 from app.infra.dependencies import get_transaction_repository
 from app.api.models.transaction_response import TransactionResponse
+from typing import Optional
+from app.transactions.delete.delete_transaction_command import DeleteTransactionCommand
+from app.transactions.delete.delete_transaction_command_handler import DeleteTransactionCommandHandler
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -39,7 +43,8 @@ def create_transaction(payload: CreateTransactionCommand, repository: ITransacti
         )
 
 @router.put("/v2/transaction/{id}", response_model= TransactionResponse, status_code=status.HTTP_200_OK, tags=tags)
-def update_transaction(id: int, payload: UpdateTransactionCommand, repository: ITransactionRepository = Depends(get_transaction_repository)):
+def update_transaction(id: int, payload: UpdateTransactionCommand,
+                       repository: ITransactionRepository = Depends(get_transaction_repository)):
     try:
         handler = UpdateTransactionCommandHandler(repository)
         
@@ -50,3 +55,22 @@ def update_transaction(id: int, payload: UpdateTransactionCommand, repository: I
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
     
+@router.delete("/v2/transaction/{id}", status_code=status.HTTP_204_NO_CONTENT, tags=tags)
+def delete_transaction(id: int = Path(description="Transaction id", gh=0),
+                       phone_number: str = Query(None, description="Phone number"),
+                       repository: ITransactionRepository = Depends(get_transaction_repository)):
+    
+    try: 
+        command = DeleteTransactionCommand(phone_number=phone_number)
+        handler = DeleteTransactionCommandHandler(repository)
+        
+        result = handler.handle(id, command,)
+        if result:
+            return status.HTTP_204_NO_CONTENT
+        
+        return status.HTTP_404_NOT_FOUND
+            
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
