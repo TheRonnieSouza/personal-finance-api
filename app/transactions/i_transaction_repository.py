@@ -17,3 +17,7 @@ class ITransactionRepository(ABC):
     @abstractmethod
     def delete(self, transaction: Transaction):
         pass
+    
+    @abstractmethod
+    def get(self) -> Transaction:
+        pass 
