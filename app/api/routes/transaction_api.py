@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Path, Query, HTTPException, Depends, status
 from app.transactions.transaction import Transaction
-from app.transactions.get.get_transaction_query import GetTransactionQuery
-from app.transactions.get.get_transaction_query_handler import GetTransactionQueryHandler 
+from app.transactions.get_by_id.get_transaction_by_id_query import GetTransactionByIdQuery
+from app.transactions.get_by_id.get_transaction_by_id_query_handler import GetTransactionByIdQueryHandler 
 from app.transactions.i_transaction_repository import ITransactionRepository
 from app.transactions.create.create_transaction_command import  CreateTransactionCommand
 from app.transactions.create.create_transaction_command_handler import  CreateTransactionCommandHandler
@@ -83,8 +83,8 @@ def get_transaction_by_id(id: int,
                           repository:ITransactionRepository = Depends(get_transaction_repository)):      
     
     try: 
-        Querytransaction = GetTransactionQuery(id=id, phone_number=phone_number)
-        handler = GetTransactionQueryHandler(repository=repository)
+        Querytransaction = GetTransactionByIdQuery(id=id, phone_number=phone_number)
+        handler = GetTransactionByIdQueryHandler(repository=repository)
         transaction = handler.handle(Querytransaction)
         
         if transaction:

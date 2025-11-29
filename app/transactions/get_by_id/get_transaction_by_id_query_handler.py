@@ -1,16 +1,16 @@
-from .get_transaction_query import GetTransactionQuery
+from .get_transaction_by_id_query import GetTransactionByIdQuery
 from app.transactions.i_transaction_repository import ITransactionRepository
 from app.transactions.transaction import Transaction
 import logging
 
 logger = logging.getLogger(__name__)
 
-class GetTransactionQueryHandler():
+class GetTransactionByIdQueryHandler():
     
     def __init__(self,repository:ITransactionRepository):
         self.repository = repository
         
-    def handle(self, query:GetTransactionQuery) -> Transaction: 
+    def handle(self, query:GetTransactionByIdQuery) -> Transaction: 
         
         transaction = self.repository.get_by_id(query.id)
         

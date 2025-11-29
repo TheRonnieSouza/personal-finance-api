@@ -84,6 +84,8 @@ class TransactionRepository(ITransactionRepository):
             self._session.rollback()
             raise e
     
+    def get(self):
+        pass
     
     def to_model(self, transaction: Transaction) -> TransactionModel:
         
