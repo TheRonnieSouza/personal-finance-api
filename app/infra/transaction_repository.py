@@ -3,6 +3,7 @@ from app.transactions.transaction import Transaction
 from app.infra.models.transaction_model import TransactionModel
 from sqlalchemy.orm import Session, declarative_base
 import logging
+from typing import List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -84,8 +85,25 @@ class TransactionRepository(ITransactionRepository):
             self._session.rollback()
             raise e
     
-    def get(self):
-        pass
+    def get(self, phone_number: Optional[str] = None) -> List[Transaction]:
+        
+        try:
+            logger.info(f"Fetching transaction for phone_number: {phone_number}")
+            
+            query = self._session.query(TransactionModel)
+            
+            if phone_number:
+                query = query.filter(TransactionModel.phone_number == phone_number)
+                
+            models = query.all()
+            
+            transactions = [self.to_entity(model) for model in models]
+            
+            logger.info(f"Found {len(transactions)} transactions")
+            return transactions
+        except Exception as e:
+            logger.exception(f"Error fetching transactions: {str(e)}")
+            raise e
     
     def to_model(self, transaction: Transaction) -> TransactionModel:
         
@@ -113,4 +131,5 @@ class TransactionRepository(ITransactionRepository):
             category=model.category
         )
         transaction.id = model.id  
+        
         return transaction

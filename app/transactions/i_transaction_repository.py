@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from .transaction import Transaction
+from typing import List, Optional
 
 class ITransactionRepository(ABC):
     @abstractmethod
@@ -15,9 +16,9 @@ class ITransactionRepository(ABC):
         pass
     
     @abstractmethod
-    def delete(self, transaction: Transaction):
+    def delete(self, transaction: Transaction) -> None:
         pass
     
     @abstractmethod
-    def get(self) -> Transaction:
+    def get(self, phone_number:Optional[str]= None) -> List[Transaction]:
         pass 
