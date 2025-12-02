@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Path, Query, HTTPException, Depends, status
 from app.transactions.transaction import Transaction
+from app.transactions.get_by_id.get_transaction_by_id_query import GetTransactionByIdQuery
+from app.transactions.get_by_id.get_transaction_by_id_query_handler import GetTransactionByIdQueryHandler 
 from app.transactions.i_transaction_repository import ITransactionRepository
 from app.transactions.create.create_transaction_command import  CreateTransactionCommand
 from app.transactions.create.create_transaction_command_handler import  CreateTransactionCommandHandler
@@ -7,9 +9,12 @@ from app.transactions.update.update_command import UpdateTransactionCommand
 from app.transactions.update.update_command_handler import UpdateTransactionCommandHandler
 from app.infra.dependencies import get_transaction_repository
 from app.api.models.transaction_response import TransactionResponse
+from app.api.models.transaction_list_response import TransactionListResponse
 from typing import Optional
 from app.transactions.delete.delete_transaction_command import DeleteTransactionCommand
 from app.transactions.delete.delete_transaction_command_handler import DeleteTransactionCommandHandler
+from app.transactions.get.get_transactions_query import GetTransactionsQuery
+from app.transactions.get.get_transactions_query_handler import GetTransactionsQueryHandler
 
 import logging
 
@@ -74,3 +79,57 @@ def delete_transaction(id: int = Path(description="Transaction id", gh=0),
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    
+@router.get("/v2/transaction/{id}", status_code=status.HTTP_200_OK, tags=tags)
+def get_transaction_by_id(id: int, 
+                          phone_number:str = Query(None,description="Phone number"), 
+                          repository:ITransactionRepository = Depends(get_transaction_repository)):      
+    
+    try: 
+        Querytransaction = GetTransactionByIdQuery(id=id, phone_number=phone_number)
+        handler = GetTransactionByIdQueryHandler(repository=repository)
+        transaction = handler.handle(Querytransaction)
+        
+        if transaction:
+            return TransactionResponse.model_validate(transaction)
+            
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Transaction with id {id} not found.")
+        
+    except ValueError as e:
+        error_msg = str(e).lower()
+        
+        if "not found" in error_msg:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=str(e))
+        if "permission" in error_msg:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+        
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail=str(e))
+    
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"An error occurred while fetching the transaction {str(e)}") 
+    
+@router.get("/v2", status_code=status.HTTP_200_OK, tags=tags)
+def get(phone_number:str = Query(None, description="Phone number"),
+        repository:ITransactionRepository = Depends(get_transaction_repository)):
+    
+    try:
+        logger.info(f"get transactions from phone_number: {phone_number}")
+        query = GetTransactionsQuery(phone_number=phone_number)
+        handler = GetTransactionsQueryHandler(repository=repository)
+        result = handler.handle(query=query)
+        
+        if result:
+            return TransactionListResponse(
+                transactions=[TransactionResponse.model_validate(t) for t in result],
+                total=len(result)              
+            )
+        
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transaction not founded")
+            
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"An error occurred while fetching the transaction {str(e)}") 
+
+    
