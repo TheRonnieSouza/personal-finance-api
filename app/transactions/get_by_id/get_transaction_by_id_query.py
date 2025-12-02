@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-class GetTransactionQuery(BaseModel):
+class GetTransactionByIdQuery(BaseModel):
     
     id: int 
     phone_number: str
