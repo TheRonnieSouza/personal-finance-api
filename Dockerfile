@@ -30,8 +30,8 @@ COPY pyproject.toml poetry.lock ./
 RUN pip install fastapi uvicorn python-dotenv sqlalchemy psycopg2-binary
 
 # Copy application source code and environment file
-# src/ contains the FastAPI application
-COPY src/ ./src/
+# app/ contains the FastAPI application
+COPY app/ ./app/
 COPY .env ./
 
 # Create a non-root user for security best practices
@@ -47,4 +47,4 @@ EXPOSE 8000
 
 # Start the FastAPI application using Python directly
 # This runs the uvicorn server from within the Python script
-CMD ["python", "src/financial_manager/main.py"]
+CMD ["python", "app/main.py"]
