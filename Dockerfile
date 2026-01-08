@@ -47,4 +47,5 @@ EXPOSE 8000
 
 # Start the FastAPI application using Python directly
 # This runs the uvicorn server from within the Python script
-CMD ["python", "app/main.py"]
+#CMD ["python", "app/main.py"]
+CMD ["python", "-m", "app.main"]
